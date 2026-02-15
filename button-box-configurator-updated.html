@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arduino Button Box Configurator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-dark: #0a0e27;
+            --bg-card: #141b3d;
+            --accent-primary: #00d9ff;
+            --accent-secondary: #ff006e;
+            --text-primary: #ffffff;
+            --text-secondary: #a8b2d1;
+            --border: #1e2a5e;
+            --success: #00ff88;
+            --warning: #ffaa00;
+        }
+
+        body {
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            background-image: 
+                radial-gradient(circle at 20% 50%, rgba(0, 217, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(255, 0, 110, 0.1) 0%, transparent 50%);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem;
+            border-bottom: 2px solid var(--border);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: var(--accent-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .step-number {
+            background: var(--accent-primary);
+            color: var(--bg-dark);
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        select, input, button {
+            font-family: inherit;
+            font-size: 1rem;
+        }
+
+        select, input[type="text"] {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+        }
+
+        .warning-box {
+            background: rgba(255, 170, 0, 0.1);
+            border: 2px solid var(--warning);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            color: var(--warning);
+        }
+
+        .pin-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .pin-config {
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+        }
+
+        .pin-config.active {
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 12px rgba(0, 217, 255, 0.3);
+        }
+
+        .pin-label {
+            font-weight: 600;
+            color: var(--accent-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        button {
+            padding: 0.75rem 2rem;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            border: none;
+            border-radius: 8px;
+            color: var(--bg-dark);
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0, 217, 255, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .success-msg {
+            background: rgba(0, 255, 136, 0.1);
+            border: 2px solid var(--success);
+            border-radius: 8px;
+            padding: 1rem;
+            color: var(--success);
+            margin-top: 1rem;
+        }
+
+        #codePreview {
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            max-height: 400px;
+            overflow-y: auto;
+            font-size: 0.85rem;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            color: var(--text-secondary);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .uploading {
+            animation: pulse 1.5s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>⚡ Arduino Button Box Configurator</h1>
+            <p class="subtitle">Configure your DCS button box in your browser - no coding required!</p>
+        </header>
+
+        <!-- Step 1: Board Selection -->
+        <div class="card">
+            <div class="card-title">
+                <span class="step-number">1</span>
+                Select Your Arduino Board
+            </div>
+            <select id="boardSelect">
+                <option value="">Choose your board...</option>
+                <option value="leonardo">Arduino Leonardo</option>
+                <option value="promicro">Arduino Pro Micro</option>
+                <option value="r4wifi">Arduino UNO R4 WiFi</option>
+            </select>
+            <div id="r4Warning" class="warning-box hidden">
+                ⚠️ <strong>Arduino R4 WiFi Warning:</strong> This board will act as a KEYBOARD device. The joystick library doesn't work properly on R4 yet. Your button box will send keyboard keys to DCS.
+            </div>
+        </div>
+
+        <!-- Step 2: Pin Configuration -->
+        <div class="card">
+            <div class="card-title">
+                <span class="step-number">2</span>
+                Configure Your Pins
+            </div>
+            <div id="pinConfigContainer">
+                <p class="text-secondary">Select a board first to configure pins...</p>
+            </div>
+        </div>
+
+        <!-- Step 3: Generate & Upload -->
+        <div class="card">
+            <div class="card-title">
+                <span class="step-number">3</span>
+                Generate Code & Upload
+            </div>
+            <div class="button-group">
+                <button id="generateBtn" onclick="generateCode()">Generate Arduino Code</button>
+                <button id="uploadBtn" onclick="uploadToArduino()" disabled>Upload to Arduino</button>
+                <button id="downloadBtn" onclick="downloadCode()" disabled>Download .ino File</button>
+            </div>
+            <div id="uploadStatus"></div>
+            <div id="codePreviewContainer" class="hidden">
+                <h3 style="margin: 2rem 0 1rem; color: var(--accent-primary);">Generated Code Preview:</h3>
+                <div id="codePreview"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let boardPins = {};
+        let pinConfigs = [];
+        let generatedCode = '';
+
+        const boardConfigs = {
+            leonardo: {
+                name: 'Arduino Leonardo',
+                pins: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', 'A0', 'A1', 'A2', 'A3', 'A4', 'A5'],
+                joystickSupport: true
+            },
+            promicro: {
+                name: 'Arduino Pro Micro',
+                pins: ['2', '3', '4', '5', '6', '7', '8', '9', '10', '14', '15', '16', '18', '19', '20', '21', 'A0', 'A1', 'A2', 'A3'],
+                joystickSupport: true
+            },
+            r4wifi: {
+                name: 'Arduino UNO R4 WiFi',
+                pins: ['2', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', 'A0', 'A1', 'A2', 'A3', 'A4', 'A5'],
+                joystickSupport: false
+            }
+        };
+
+        document.getElementById('boardSelect').addEventListener('change', function(e) {
+            const board = e.target.value;
+            const warning = document.getElementById('r4Warning');
+            
+            if (board === 'r4wifi') {
+                warning.classList.remove('hidden');
+            } else {
+                warning.classList.add('hidden');
+            }
+            
+            if (board && boardConfigs[board]) {
+                setupPinConfiguration(board);
+            }
+        });
+
+        function setupPinConfiguration(boardType) {
+            const config = boardConfigs[boardType];
+            const container = document.getElementById('pinConfigContainer');
+            
+            container.innerHTML = '<div class="pin-grid" id="pinGrid"></div>';
+            const grid = document.getElementById('pinGrid');
+            
+            pinConfigs = config.pins.map(pin => ({
+                pin: pin,
+                type: 'unused',
+                key: ''
+            }));
+            
+            config.pins.forEach((pin, index) => {
+                const pinDiv = document.createElement('div');
+                pinDiv.className = 'pin-config';
+                pinDiv.innerHTML = `
+                    <div class="pin-label">Pin ${pin}</div>
+                    <select onchange="updatePinConfig(${index}, this.value)">
+                        <option value="unused">Unused</option>
+                        <option value="button">Push Button</option>
+                        <option value="toggle2">2-Position Toggle</option>
+                        <option value="toggle3">3-Position Toggle</option>
+                        <option value="encoder_clk">Encoder CLK</option>
+                        <option value="encoder_dt">Encoder DT</option>
+                        <option value="encoder_sw">Encoder SW (Click)</option>
+                    </select>
+                    <input type="text" 
+                           id="key_${index}" 
+                           placeholder="Key (e.g., '1', 'a', '[')" 
+                           onchange="updatePinKey(${index}, this.value)"
+                           style="display: none;">
+                `;
+                grid.appendChild(pinDiv);
+            });
+        }
+
+        function updatePinConfig(index, type) {
+            pinConfigs[index].type = type;
+            const keyInput = document.getElementById(`key_${index}`);
+            
+            if (type !== 'unused' && type !== 'encoder_clk' && type !== 'encoder_dt') {
+                keyInput.style.display = 'block';
+            } else {
+                keyInput.style.display = 'none';
+            }
+        }
+
+        function updatePinKey(index, key) {
+            pinConfigs[index].key = key;
+        }
+
+        function generateCode() {
+            const board = document.getElementById('boardSelect').value;
+            if (!board) {
+                alert('Please select a board first!');
+                return;
+            }
+            
+            const config = boardConfigs[board];
+            let code = '';
+            
+            if (config.joystickSupport) {
+                code = generateJoystickCode(board);
+            } else {
+                code = generateKeyboardCode(board);
+            }
+            
+            generatedCode = code;
+            document.getElementById('codePreview').textContent = code;
+            document.getElementById('codePreviewContainer').classList.remove('hidden');
+            document.getElementById('uploadBtn').disabled = false;
+            document.getElementById('downloadBtn').disabled = false;
+        }
+
+        function generateKeyboardCode(board) {
+            let code = `#include <Keyboard.h>
+
+// Auto-generated by Arduino Button Box Configurator
+// Board: ${boardConfigs[board].name}
+
+`;
+            
+            // Add pin definitions
+            pinConfigs.forEach((pin, idx) => {
+                if (pin.type !== 'unused') {
+                    code += `const int pin_${idx} = ${pin.pin}; // ${pin.type}\n`;
+                }
+            });
+            
+            code += `
+bool lastStates[${pinConfigs.length}] = {HIGH};
+int lastCLK = HIGH;
+
+void setup() {
+`;
+            
+            pinConfigs.forEach((pin, idx) => {
+                if (pin.type !== 'unused') {
+                    code += `    pinMode(pin_${idx}, INPUT_PULLUP);\n`;
+                }
+            });
+            
+            code += `    Keyboard.begin();
+    delay(1000);
+}
+
+void loop() {
+`;
+            
+            // Add button/switch handlers
+            pinConfigs.forEach((pin, idx) => {
+                if (pin.type === 'button' && pin.key) {
+                    code += `    // Button on pin ${pin.pin}
+    if (digitalRead(pin_${idx}) == LOW && lastStates[${idx}] == HIGH) {
+        Keyboard.press('${pin.key}');
+        delay(50);
+        Keyboard.release('${pin.key}');
+    }
+    lastStates[${idx}] = digitalRead(pin_${idx});
+    
+`;
+                } else if (pin.type === 'toggle2' && pin.key) {
+                    code += `    // 2-Position Toggle on pin ${pin.pin}
+    if (digitalRead(pin_${idx}) == LOW && lastStates[${idx}] == HIGH) {
+        Keyboard.press('${pin.key}');
+        delay(50);
+        Keyboard.release('${pin.key}');
+    }
+    lastStates[${idx}] = digitalRead(pin_${idx});
+    
+`;
+                }
+            });
+            
+            // Add encoder handling
+            const encoderCLK = pinConfigs.find(p => p.type === 'encoder_clk');
+            const encoderDT = pinConfigs.find(p => p.type === 'encoder_dt');
+            
+            if (encoderCLK && encoderDT) {
+                const clkIdx = pinConfigs.indexOf(encoderCLK);
+                const dtIdx = pinConfigs.indexOf(encoderDT);
+                code += `    // Encoder rotation
+    int clkValue = digitalRead(pin_${clkIdx});
+    if (clkValue != lastCLK && clkValue == LOW) {
+        if (digitalRead(pin_${dtIdx}) == HIGH) {
+            Keyboard.press(KEY_PAGE_UP);
+            delay(50);
+            Keyboard.release(KEY_PAGE_UP);
+        } else {
+            Keyboard.press(KEY_PAGE_DOWN);
+            delay(50);
+            Keyboard.release(KEY_PAGE_DOWN);
+        }
+    }
+    lastCLK = clkValue;
+    
+`;
+            }
+            
+            code += `    delay(10);
+}`;
+            
+            return code;
+        }
+
+        function generateJoystickCode(board) {
+            // Similar structure but with Joystick library
+            return `#include <Joystick.h>
+
+// Auto-generated by Arduino Button Box Configurator
+// Board: ${boardConfigs[board].name}
+
+Joystick_ Joystick;
+
+// Add your pin configurations here...
+// This is a placeholder - full joystick code coming soon!
+
+void setup() {
+    Joystick.begin();
+}
+
+void loop() {
+    // Your button box logic here
+}`;
+        }
+
+        async function uploadToArduino() {
+            if (!generatedCode) {
+                alert('Generate code first!');
+                return;
+            }
+            
+            if (!('serial' in navigator)) {
+                alert('Web Serial API not supported! Use Chrome or Edge browser.');
+                return;
+            }
+            
+            try {
+                const statusDiv = document.getElementById('uploadStatus');
+                statusDiv.innerHTML = '<div class="success-msg uploading">🔌 Connecting to Arduino...</div>';
+                
+                const port = await navigator.serial.requestPort();
+                await port.open({ baudRate: 9600 });
+                
+                statusDiv.innerHTML = '<div class="success-msg">⚠️ Web Serial API can only monitor the Arduino. To upload code, please use Arduino IDE or download the .ino file and upload manually.</div>';
+                
+                await port.close();
+                
+            } catch (error) {
+                document.getElementById('uploadStatus').innerHTML = `<div class="warning-box">❌ Error: ${error.message}</div>`;
+            }
+        }
+
+        function downloadCode() {
+            if (!generatedCode) {
+                alert('Generate code first!');
+                return;
+            }
+            
+            const blob = new Blob([generatedCode], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'button_box_config.ino';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            document.getElementById('uploadStatus').innerHTML = '<div class="success-msg">✅ Code downloaded! Upload it using Arduino IDE.</div>';
+        }
+    </script>
+</body>
+</html>
