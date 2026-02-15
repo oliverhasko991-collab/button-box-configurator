@@ -4,7 +4,7 @@
 
 A web-based tool to configure Arduino boards as button boxes for flight simulators like DCS World. Simply select your components, assign keys, and download ready-to-use Arduino code.
 
-🔗 **[Try it now!](https://oliverhasko991-collab.github.io/button-box-configurator/button-box-configurator.html)**
+🔗 **[Try it now!](https://oliverhasko991-collab.github.io/button-box-configurator/button-box-configurator-updated.html)**
 
 ---
 
