@@ -258,7 +258,6 @@
             </div>
             <div class="button-group">
                 <button id="generateBtn" onclick="generateCode()">Generate Arduino Code</button>
-                <button id="uploadBtn" onclick="uploadToArduino()" disabled>Upload to Arduino</button>
                 <button id="downloadBtn" onclick="downloadCode()" disabled>Download .ino File</button>
             </div>
             <div id="uploadStatus"></div>
@@ -378,7 +377,6 @@
             generatedCode = code;
             document.getElementById('codePreview').textContent = code;
             document.getElementById('codePreviewContainer').classList.remove('hidden');
-            document.getElementById('uploadBtn').disabled = false;
             document.getElementById('downloadBtn').disabled = false;
         }
 
@@ -492,33 +490,6 @@ void setup() {
 void loop() {
     // Your button box logic here
 }`;
-        }
-
-        async function uploadToArduino() {
-            if (!generatedCode) {
-                alert('Generate code first!');
-                return;
-            }
-            
-            if (!('serial' in navigator)) {
-                alert('Web Serial API not supported! Use Chrome or Edge browser.');
-                return;
-            }
-            
-            try {
-                const statusDiv = document.getElementById('uploadStatus');
-                statusDiv.innerHTML = '<div class="success-msg uploading">🔌 Connecting to Arduino...</div>';
-                
-                const port = await navigator.serial.requestPort();
-                await port.open({ baudRate: 9600 });
-                
-                statusDiv.innerHTML = '<div class="success-msg">⚠️ Web Serial API can only monitor the Arduino. To upload code, please use Arduino IDE or download the .ino file and upload manually.</div>';
-                
-                await port.close();
-                
-            } catch (error) {
-                document.getElementById('uploadStatus').innerHTML = `<div class="warning-box">❌ Error: ${error.message}</div>`;
-            }
         }
 
         function downloadCode() {
